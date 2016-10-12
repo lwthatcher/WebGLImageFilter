@@ -1,0 +1,7 @@
+# Node
+node_modules/
+npm-debug.log
+npm-debug.log.*
+
+# Don't Upload Images
+resources/

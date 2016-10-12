@@ -1,0 +1,23 @@
+{
+  "name": "webgl-img-filter",
+  "version": "1.0.0",
+  "description": "Fork of phoboslab's WebGLImageFilter",
+  "main": "webgl-image-filter.js",
+  "scripts": {
+    "lite": "lite-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lwthatcher/WebGLImageFilter.git"
+  },
+  "author": "Dominic Szablewski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lwthatcher/WebGLImageFilter/issues"
+  },
+  "homepage": "https://github.com/lwthatcher/WebGLImageFilter#readme",
+  "dependencies": {
+    "lite-server": "^2.2.2"
+  }
+}

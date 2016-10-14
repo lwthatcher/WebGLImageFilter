@@ -22,7 +22,7 @@ var WebGLProgram = function( gl, vertexSource, fragmentSource ) {
 		gl.compileShader(shader);
 
 		if( !gl.getShaderParameter(shader, gl.COMPILE_STATUS) ) {
-			console.log(gl.getShaderInfoLog(shader));
+			console.log(gl.getShaderInfoLog(shader), "code:\n", gl.getShaderSource(shader));
 			return null;
 		}
 		return shader;
@@ -85,6 +85,7 @@ var WebGLImageFilter = window.WebGLImageFilter = function() {
 	this.addFilter = function( name ) {
 		var args = Array.prototype.slice.call(arguments, 1);
 		var filter = _filter[name];
+		console.info("added filter", filter, _filterChain);
 
 		_filterChain.push({func:filter, args:args});
 	};
@@ -499,6 +500,52 @@ var WebGLImageFilter = window.WebGLImageFilter = function() {
 		'}',
 	].join('\n');
 
+	_filter.anyConvolution = function(coordinates, values) {
+		var coords = new Float32Array(coordinates);
+		var vals = new Float32Array(values);
+		var pixelSizeX = 1 / _width;
+		var pixelSizeY = 1 / _height;
+
+		var program = _compileShader(_filter.anyConvolution.SHADER);
+		gl.uniform2fv(program.uniform.c, coords);
+		gl.uniform1fv(program.uniform.v, vals);
+		gl.uniform2f(program.uniform.px, pixelSizeX, pixelSizeY);
+		gl.uniform1i(program.uniform.len, vals.length);
+		_draw();
+	}
+
+	_filter.anyConvolution.SHADER = [
+		'const int length = 2048;',
+		'precision highp float;',
+		'varying vec2 vUv;',
+		'uniform sampler2D texture;',
+		'uniform vec2 px;',
+		
+		'uniform int len;',
+		'uniform vec2 c[length];',
+		'uniform float v[length];',
+
+		'void main(void) {',
+			'vec4 res = vec4(0);',
+			'for(int i = 0; i < length; i++) {',
+				'if (i >= len) {break;}',
+				'vec4 orig = texture2D(texture, vUv + (c[i] * px));',
+				'res += (orig * v[i]);',
+			'}',
+			'res.a = texture2D(texture, vUv).a;',
+			'gl_FragColor = res;',
+		'}'
+	].join('\n');
+
+
+	_filter.detectEdges2 = function() {
+		var laplace2_coor = [-1.0,-1.0, 0.0,-1.0, 1.0,-1.0,
+                     		 -1.0,0.0, 0.0,0.0, 1.0,0.0,
+                     		 -1.0,1.0, 0.0,1.0, 1.0,1.0];
+		var laplace2_vals = [0,1,0,1,-4,1,0,1,0];
+		console.log("laplaces", laplace2_coor, laplace2_vals);
+		_filter.anyConvolution.call(this, laplace2_coor, laplace2_vals);
+	}
 
 	_filter.detectEdges = function() {
 		_filter.convolution.call(this, [
